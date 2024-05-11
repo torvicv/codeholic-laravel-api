@@ -62,14 +62,14 @@ class AuthController extends Controller
      */
     public function login(Request $request) {
         $validated = $request->validate([
-            'email' => ['required', 'email', 'string', 'unique:users,email'],
+            'email' => ['required', 'email', 'string'],
             'password' => ['required'],
         ]);
 
         $user = User::where('email', $validated['email'])->first();
         if (!$user || !Hash::check($validated['password'], $user->password)) {
             return response()->json([
-                'error' => 'The provided credentials do not match our records.',
+                'error' => ['The provided credentials do not match our records.'],
             ], 422);
         }
 
@@ -79,5 +79,14 @@ class AuthController extends Controller
             'user' => $user,
             'token' => $token,
         ], 200);
+    }
+
+    /**
+     * Log the user out of the application.
+     */
+    public function logout(Request $request) {
+        $request->user()->tokens()->delete();
+
+        return response()->json(['success' => true]);
     }
 }
