@@ -18,6 +18,11 @@ class Survey extends Model
         'expire_date',
         'status',
         'slug',
+        'image',
+    ];
+
+    protected $casts = [
+        'status' => 'boolean'
     ];
 
     public function getSlugOptions(): SlugOptions

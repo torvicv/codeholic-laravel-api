@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateSurveyRequest;
 use App\Http\Resources\SurveyResource;
 use App\Models\Survey;
 use Illuminate\Http\Request;
+use Spatie\Sluggable\SlugOptions;
 
 class SurveyController extends Controller
 {
@@ -24,7 +25,15 @@ class SurveyController extends Controller
      */
     public function store(StoreSurveyRequest $request)
     {
-        $result = Survey::create($request->validated());
+        $validated = $request->validated();
+        $image = $request->file('image');
+        if ($image) {
+            $slug = str_replace(' ', '-', $validated['title']);
+            $imageName = $slug.'.'.$image->extension();
+            $image->storeAs('public/images', $imageName);
+            $validated['image'] = 'images/'.$imageName;
+        }
+        $result = Survey::create($validated);
         return new SurveyResource($result);
     }
 
