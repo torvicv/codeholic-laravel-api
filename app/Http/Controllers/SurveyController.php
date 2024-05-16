@@ -40,7 +40,7 @@ class SurveyController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Survey $survey, Request $request)
+    public function edit(Survey $survey, Request $request)
     {
         $user = $request->user();
         if ($user->id !== $survey->user_id) {
@@ -54,7 +54,15 @@ class SurveyController extends Controller
      */
     public function update(UpdateSurveyRequest $request, Survey $survey)
     {
-        $survey->update($request->validated());
+        $validated = $request->validated();
+        $image = $request->file('image');
+        if ($image) {
+            $slug = str_replace(' ', '-', $validated['title']);
+            $imageName = $slug.'.'.$image->extension();
+            $image->storeAs('public/images', $imageName);
+            $validated['image'] = 'images/'.$imageName;
+        }
+        $survey->update($validated);
         return new SurveyResource($survey);
     }
 
