@@ -55,6 +55,7 @@ class SurveyController extends Controller
     public function update(UpdateSurveyRequest $request, Survey $survey)
     {
         $validated = $request->validated();
+        $validated['status'] = $validated['status'] === 'false' ? false : true;
         $image = $request->file('image');
         if ($image) {
             $slug = str_replace(' ', '-', $validated['title']);

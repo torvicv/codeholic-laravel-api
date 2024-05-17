@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +19,7 @@ class SurveyResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'status' => $this->status !== 'draft',
+            'status' => $this->status,
             'description' => $this->description,
             'expire_date' => $this->expire_date,
             'created_at' => $this->created_at,

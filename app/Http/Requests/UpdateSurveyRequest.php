@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Survey;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateSurveyRequest extends FormRequest
@@ -11,7 +12,8 @@ class UpdateSurveyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        if ($this->user_id != auth()->user()->id) {
+        $survey = Survey::find($this->id);
+        if ($survey->user_id != auth()->user()->id) {
             return abort(403, 'Unauthorized action.');
         }
         return true;
@@ -30,7 +32,7 @@ class UpdateSurveyRequest extends FormRequest
             'status' => 'required|in:true,false',
             'description' => 'nullable|string',
             'image' => 'image|mimes:jpeg,png,jpg,gif,svg',
-            'expire_date' => 'nullable|date|after:tomorrow'
+            'expire_date' => 'nullable|date'
         ];
     }
 }
