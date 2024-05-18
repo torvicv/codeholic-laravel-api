@@ -32,7 +32,8 @@ class UpdateSurveyRequest extends FormRequest
             'status' => 'required|in:true,false',
             'description' => 'nullable|string',
             'image' => 'image|mimes:jpeg,png,jpg,gif,svg',
-            'expire_date' => 'nullable|date'
+            'expire_date' => 'nullable|date',
+            'questions' => 'nullable|array',
         ];
     }
 }

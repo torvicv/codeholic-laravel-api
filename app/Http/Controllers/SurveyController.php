@@ -6,7 +6,10 @@ use App\Http\Requests\StoreSurveyRequest;
 use App\Http\Requests\UpdateSurveyRequest;
 use App\Http\Resources\SurveyResource;
 use App\Models\Survey;
+use App\Models\SurveyQuestion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Spatie\Sluggable\SlugOptions;
 
 class SurveyController extends Controller
@@ -33,8 +36,12 @@ class SurveyController extends Controller
             $image->storeAs('public/images', $imageName);
             $validated['image'] = 'images/'.$imageName;
         }
-        $result = Survey::create($validated);
-        return new SurveyResource($result);
+        $survey = Survey::create($validated);
+        foreach ($validated['questions'] as $question) {
+            $question['survey_id'] = $survey->id;
+            $this->createQuestion($question);
+        }
+        return new SurveyResource($survey);
     }
 
     /**
@@ -63,7 +70,14 @@ class SurveyController extends Controller
             $image->storeAs('public/images', $imageName);
             $validated['image'] = 'images/'.$imageName;
         }
+        $questions = [];
+        foreach ($validated['questions'] as $question) {
+            $question['survey_id'] = $survey->id;
+            array_push($questions, $this->createQuestion($question));
+        }
         $survey->update($validated);
+        $survey->survey_questions()->delete();
+        $survey->survey_questions()->saveMany($questions);
         return new SurveyResource($survey);
     }
 
@@ -78,5 +92,40 @@ class SurveyController extends Controller
         }
         $survey->delete();
         return response('', 204);
+    }
+
+    private function createQuestion($data) {
+        $checkData = false;
+        if (isset($data['data']) && is_array($data['data'])) {
+            $data['data'] = json_encode($data['data']);
+        }
+
+        if (isset($data['data']) && isset(json_decode($data['data'])->options) && count(json_decode($data['data'])->options) > 0) {
+            $checkData = true;
+        }
+
+        if (!isset($data['data'])) {
+            $data['data'] = json_encode('{}');
+        }
+
+        $values = [
+            'text', 'select', 'radio', 'checkbox', 'textarea'
+        ];
+
+        $validator = Validator::make($data, [
+            'type' => ['required', Rule::in($values)],
+            'question' =>'required|string',
+            'description' =>'nullable|string',
+            'data' =>'present',
+            'survey_id' => 'exists:App\Models\Survey,id'
+        ]);
+
+        //if ($checkData) {
+          //  $surveyQuestion = SurveyQuestion::where('survey_id', $validator->validated()['survey_id']);
+            // return $surveyQuestion->update($validator->validated());
+          //  return $surveyQuestion;
+        //}
+        // return SurveyQuestion::create($validator->validated());
+        return new SurveyQuestion($validator->validated());
     }
 }
